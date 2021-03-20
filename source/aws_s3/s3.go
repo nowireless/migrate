@@ -36,7 +36,18 @@ func (s *s3Driver) Open(folder string) (source.Driver, error) {
 		return nil, err
 	}
 
-	sess, err := session.NewSession()
+	s3config := &aws.Config{}
+	if endpoint := os.Getenv("AWS_ENDPOINT"); endpoint != "" {
+		s3config.Endpoint = aws.String(endpoint)
+	}
+	if disableSSL := os.Getenv("AWS_DISABLE_SSL"); strings.ToLower(disableSSL) == "true" {
+		s3config.DisableSSL = aws.Bool(true)
+	}
+	if s3ForcePathStyle := os.Getenv("AWS_S3_FORCE_PATH_STYLE"); strings.ToLower(s3ForcePathStyle) == "true" {
+		s3config.S3ForcePathStyle = aws.Bool(true)
+	}
+
+	sess, err := session.NewSession(s3config)
 	if err != nil {
 		return nil, err
 	}
